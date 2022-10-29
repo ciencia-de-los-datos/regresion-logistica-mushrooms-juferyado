@@ -1,23 +1,17 @@
 """
 Detección de hongos venenosos usando Regresión Logistica
 -----------------------------------------------------------------------------------------
-
 Construya un modelo de regresión logística que permita identificar si un hongo es 
 venenoso o no. Para ello, utilice la muestra de datos suministrada. 
-
 La base de datos contiene 8124 instancias de hongos provenientes de 23 especies de la 
 familia Agaricus y Lepiota, los cuales han sido clasificados como comestibles, venenosos
 o de comestibilidad indeterminada. Por el tipo de problema en cuestión, los hongos de 
 comestibilidad desconocida deben ser asignados a la clase de hongos venenosos, ya que no
 se puede correr el riesgo de dar un hongo potencialmente venenoso a una persona para su 
 consumo.
-
 Véase https://www.kaggle.com/uciml/mushroom-classification
-
 Evalue el modelo usando la matriz de confusión.
-
 La información contenida en la muestra es la siguiente:
-
      1. cap-shape:                bell=b,conical=c,convex=x,flat=f,
                                   knobbed=k,sunken=s
      2. cap-surface:              fibrous=f,grooves=g,scaly=y,smooth=s
@@ -52,9 +46,6 @@ La información contenida en la muestra es la siguiente:
                                   scattered=s,several=v,solitary=y
     22. habitat:                  grasses=g,leaves=l,meadows=m,paths=p,
                                   urban=u,waste=w,woods=d
-
-
-"""
 """
 
 import pandas as pd
@@ -65,20 +56,20 @@ def pregunta_01():
     En esta función se realiza la carga de datos.
     """
     # Lea el archivo `mushrooms.csv` y asignelo al DataFrame `df`
-    df =pd.read_csv('mushrooms.csv',sep=',')
-    
+    df = pd.read_csv('mushrooms.csv',sep=",")
+
     # Remueva la columna `veil-type` del DataFrame `df`.
     # Esta columna tiene un valor constante y no sirve para la detección de hongos.
-    df.drop(columns=['veil_type'],axis=1,inplace=True)
-    
+    df.drop('veil_type',axis=1,inplace=True)
+
     # Asigne la columna `type` a la variable `y`.
     y = df['type']
-    
+
     # Asigne una copia del dataframe `df` a la variable `X`.
-    X= df.copy(deep=True)
-    
+    X = df.copy(deep=True)
+
     # Remueva la columna `type` del DataFrame `X`.
-    X.drop(columns=['type'],axis=1,inplace=True)
+    X.drop('type',axis=1,inplace=True)
 
     # Retorne `X` y `y`
     return X, y
@@ -88,20 +79,19 @@ def pregunta_02():
     """
     Preparación del dataset.
     """
-    
+
     # Importe train_test_split
     from sklearn.model_selection import train_test_split
-    
+
     # Cargue los datos de ejemplo y asigne los resultados a `X` y `y`.
     X, y = pregunta_01()
-    
+
     # Divida los datos de entrenamiento y prueba. La semilla del generador de números
     # aleatorios es 123. Use 50 patrones para la muestra de prueba.
-    prueba=(50/len(X))
     (X_train, X_test, y_train, y_test,) = train_test_split(
         X,
         y,
-        test_size=prueba,
+        test_size=50,
         random_state=123,
     )
 
@@ -118,25 +108,26 @@ def pregunta_03():
     Ya que las variables explicativas son literales, resulta más conveniente usar un
     pipeline.
     """
+
     # Importe LogisticRegressionCV
-    from sklearn.linear_model import LogisticRegression
-    # Importe Pipeline
-    from sklearn.pipeline import Pipeline
+    from sklearn.linear_model import LogisticRegressionCV
     # Importe OneHotEncoder
     from sklearn.preprocessing import OneHotEncoder
-    
+    # Importe Pipeline
+    from sklearn.pipeline import Pipeline
+
     # Cargue las variables.
     X_train, X_test, y_train, y_test = pregunta_02()
-    
+
     # Cree un pipeline que contenga un estimador OneHotEncoder y un estimador
     # LogisticRegression con una regularización Cs=10
     pipeline = Pipeline(
         steps=[
-            ("onehotencoder",OneHotEncoder(handle_unknown='ignore')),
-            ("logistic", LogisticRegression(C=10)),
+            ("OneHotEncoder", OneHotEncoder()),
+            ("LogisticRegression", LogisticRegressionCV(Cs=10)),
         ],
     )
-    
+
     # Entrene el pipeline con los datos de entrenamiento.
     pipeline.fit(X_train, y_train)
 
@@ -148,21 +139,22 @@ def pregunta_04():
     """
     Evalue el modelo obtenido.
     """
+
     # Importe confusion_matrix
     from sklearn.metrics import confusion_matrix
-    
+
     # Obtenga el pipeline de la pregunta 3.
     pipeline = pregunta_03()
-    
+
     # Cargue las variables.
     X_train, X_test, y_train, y_test = pregunta_02()
-    
+
     # Evalúe el pipeline con los datos de entrenamiento usando la matriz de confusion.
     cfm_train = confusion_matrix(
         y_true=y_train,
         y_pred=pipeline.predict(X_train),
     )
-    
+
     cfm_test = confusion_matrix(
         y_true=y_test,
         y_pred=pipeline.predict(X_test),
